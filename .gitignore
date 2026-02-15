@@ -1,0 +1,17 @@
+*.class
+out/
+
+# Generated data & results
+**/data/
+**/*.csv
+**/results/*.txt
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
