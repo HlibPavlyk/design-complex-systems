@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Lab 3: HTM vs STM Database Benchmark</title>
+<style>body{font-family:Arial,sans-serif;margin:40px;background:#f5f5f5;} .container{background:white;padding:30px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);max-width:950px;margin:0 auto;} table{border-collapse:collapse;margin:20px 0;width:100%;} th,td{border:1px solid #ddd;padding:8px 12px;text-align:right;} th{background:#f0f0f0;} td:first-child,th:first-child{text-align:center;} .info{background:#e3f2fd;padding:15px;border-radius:6px;margin:15px 0;} .warn{background:#fff3e0;padding:15px;border-radius:6px;margin:15px 0;} .htmbox{background:#e8f5e9;padding:15px;border-radius:6px;margin:15px 0;} .stmbox{background:#fce4ec;padding:15px;border-radius:6px;margin:15px 0;}</style>
+</head>
+<body>
+<div class="container">
+<h1>Lab 3: Hardware vs Software Transactional Memory</h1>
+<p><strong>Variant 15</strong> | DBMS: PostgreSQL | API: java.sql (JDBC) | Threads: 8</p>
+<div class="info">
+<strong>Experiment:</strong> 8 threads concurrently execute UPDATE queries on a PostgreSQL database. The number of queries per thread varies to produce different total query counts. We compare two approaches to managing concurrent access:
+<ul>
+<li><strong>HTM</strong> (Hardware Transactional Memory): ReentrantLock with Intel TSX-NI Hardware Lock Elision</li>
+<li><strong>STM</strong> (Software Transactional Memory): Multiverse library atomic blocks</li>
+</ul></div>
+<div class="htmbox">
+<strong>HTM (Hardware Transactional Memory):</strong> Uses <code>java.util.concurrent.locks.ReentrantLock</code> to protect concurrent DB operations. When Intel TSX-NI is enabled, the CPU applies Hardware Lock Elision (HLE): lock-protected regions are speculatively executed without actually acquiring the lock. Since threads operate on largely non-overlapping records, speculative execution succeeds and lock overhead is eliminated.</div>
+<div class="stmbox">
+<strong>STM (Software Transactional Memory):</strong> Uses the <code>Multiverse</code> library (<code>StmUtils.atomic()</code>) to wrap DB operations in software-managed transactional blocks. Conflict detection and resolution are managed entirely in software, adding overhead compared to hardware-assisted approach. This mode is run with TSX-NI disabled to measure pure STM performance.</div>
+<h2>Execution Time Comparison</h2>
+<svg width="850" height="450" xmlns="http://www.w3.org/2000/svg">
+<rect width="850" height="450" fill="white"/>
+<text x="425" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">HTM vs STM: Database Operation Performance (8 threads)</text>
+<line x1="90" y1="390.0" x2="820" y2="390.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="394.0" text-anchor="end" font-size="11" fill="#666">0</text>
+<line x1="90" y1="322.0" x2="820" y2="322.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="326.0" text-anchor="end" font-size="11" fill="#666">92</text>
+<line x1="90" y1="254.0" x2="820" y2="254.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="258.0" text-anchor="end" font-size="11" fill="#666">183</text>
+<line x1="90" y1="186.0" x2="820" y2="186.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="190.0" text-anchor="end" font-size="11" fill="#666">275</text>
+<line x1="90" y1="118.0" x2="820" y2="118.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="122.0" text-anchor="end" font-size="11" fill="#666">366</text>
+<line x1="90" y1="50.0" x2="820" y2="50.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="54.0" text-anchor="end" font-size="11" fill="#666">458</text>
+<line x1="90.0" y1="50" x2="90.0" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="90.0" y="410" text-anchor="middle" font-size="12" fill="#666">200</text>
+<line x1="181.3" y1="50" x2="181.3" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="181.3" y="410" text-anchor="middle" font-size="12" fill="#666">400</text>
+<line x1="272.5" y1="50" x2="272.5" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="272.5" y="410" text-anchor="middle" font-size="12" fill="#666">600</text>
+<line x1="363.8" y1="50" x2="363.8" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="363.8" y="410" text-anchor="middle" font-size="12" fill="#666">1000</text>
+<line x1="455.0" y1="50" x2="455.0" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="455.0" y="410" text-anchor="middle" font-size="12" fill="#666">1200</text>
+<line x1="546.3" y1="50" x2="546.3" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="546.3" y="410" text-anchor="middle" font-size="12" fill="#666">1400</text>
+<line x1="637.5" y1="50" x2="637.5" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="637.5" y="410" text-anchor="middle" font-size="12" fill="#666">1800</text>
+<line x1="728.8" y1="50" x2="728.8" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="728.8" y="410" text-anchor="middle" font-size="12" fill="#666">2000</text>
+<line x1="820.0" y1="50" x2="820.0" y2="390" stroke="#e0e0e0" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="820.0" y="410" text-anchor="middle" font-size="12" fill="#666">2400</text>
+<text x="455" y="435" text-anchor="middle" font-size="13" fill="#444">Total Queries (threads x iterations)</text>
+<text x="20" y="220" text-anchor="middle" font-size="13" fill="#444" transform="rotate(-90, 20, 220)">Time (ms)</text>
+<polyline points="90.0,290.5 181.3,288.0 272.5,276.4 363.8,255.1 455.0,258.4 546.3,259.0 637.5,250.3 728.8,256.7 820.0,248.2" fill="none" stroke="#4285F4" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="90.0,242.6 181.3,215.6 272.5,214.8 363.8,191.4 455.0,187.8 546.3,158.1 637.5,135.1 728.8,113.3 820.0,94.3" fill="none" stroke="#EA4335" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="90.0" cy="290.5" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="90.0" y="280.5" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">134</text>
+<circle cx="90.0" cy="242.6" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="90.0" y="260.6" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">198</text>
+<circle cx="181.3" cy="288.0" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="181.3" y="278.0" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">137</text>
+<circle cx="181.3" cy="215.6" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="181.3" y="233.6" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">235</text>
+<circle cx="272.5" cy="276.4" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="272.5" y="266.4" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">153</text>
+<circle cx="272.5" cy="214.8" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="272.5" y="232.8" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">236</text>
+<circle cx="363.8" cy="255.1" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="363.8" y="245.1" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">182</text>
+<circle cx="363.8" cy="191.4" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="363.8" y="209.4" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">267</text>
+<circle cx="455.0" cy="258.4" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="455.0" y="248.4" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">177</text>
+<circle cx="455.0" cy="187.8" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="455.0" y="205.8" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">272</text>
+<circle cx="546.3" cy="259.0" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="546.3" y="249.0" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">176</text>
+<circle cx="546.3" cy="158.1" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="546.3" y="176.1" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">312</text>
+<circle cx="637.5" cy="250.3" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="637.5" y="240.3" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">188</text>
+<circle cx="637.5" cy="135.1" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="637.5" y="153.1" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">343</text>
+<circle cx="728.8" cy="256.7" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="728.8" y="246.7" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">180</text>
+<circle cx="728.8" cy="113.3" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="728.8" y="131.3" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">373</text>
+<circle cx="820.0" cy="248.2" r="5" fill="#4285F4" stroke="white" stroke-width="2"/>
+<text x="820.0" y="238.2" text-anchor="middle" font-size="10" fill="#4285F4" font-weight="bold">191</text>
+<circle cx="820.0" cy="94.3" r="5" fill="#EA4335" stroke="white" stroke-width="2"/>
+<text x="820.0" y="112.3" text-anchor="middle" font-size="10" fill="#EA4335" font-weight="bold">398</text>
+<line x1="90" y1="50" x2="90" y2="390" stroke="#333" stroke-width="2"/>
+<line x1="90" y1="390" x2="820" y2="390" stroke="#333" stroke-width="2"/>
+<rect x="105" y="60" width="260" height="52" rx="4" fill="white" stroke="#ddd" stroke-width="1"/>
+<line x1="115" y1="76" x2="135" y2="76" stroke="#4285F4" stroke-width="3"/>
+<circle cx="125" cy="76" r="4" fill="#4285F4"/>
+<text x="143" y="80" font-size="12" fill="#333">HTM (ReentrantLock + TSX-NI)</text>
+<line x1="115" y1="98" x2="135" y2="98" stroke="#EA4335" stroke-width="3"/>
+<circle cx="125" cy="98" r="4" fill="#EA4335"/>
+<text x="143" y="102" font-size="12" fill="#333">STM (Multiverse Software TM)</text>
+</svg>
+
+<h2>STM/HTM Ratio (overhead factor)</h2>
+<svg width="850" height="350" xmlns="http://www.w3.org/2000/svg">
+<rect width="850" height="350" fill="white"/>
+<text x="425" y="30" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">STM / HTM Ratio (8 threads)</text>
+<line x1="90" y1="290.0" x2="820" y2="290.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="294.0" text-anchor="end" font-size="11" fill="#666">0.00</text>
+<line x1="90" y1="242.0" x2="820" y2="242.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="246.0" text-anchor="end" font-size="11" fill="#666">0.48</text>
+<line x1="90" y1="194.0" x2="820" y2="194.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="198.0" text-anchor="end" font-size="11" fill="#666">0.96</text>
+<line x1="90" y1="146.0" x2="820" y2="146.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="150.0" text-anchor="end" font-size="11" fill="#666">1.44</text>
+<line x1="90" y1="98.0" x2="820" y2="98.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="102.0" text-anchor="end" font-size="11" fill="#666">1.92</text>
+<line x1="90" y1="50.0" x2="820" y2="50.0" stroke="#e0e0e0" stroke-width="1"/>
+<text x="82" y="54.0" text-anchor="end" font-size="11" fill="#666">2.40</text>
+<line x1="90" y1="189.9" x2="820" y2="189.9" stroke="#999" stroke-width="1" stroke-dasharray="6,3"/>
+<text x="822" y="193.9" font-size="10" fill="#999">1.00 (equal)</text>
+<rect x="110.0" y="141.8" width="58.9" height="148.2" fill="#EA4335" rx="3"/>
+<text x="139.4" y="136.8" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.48</text>
+<text x="139.4" y="310" text-anchor="middle" font-size="12" fill="#666">200</text>
+<rect x="188.9" y="118.9" width="58.9" height="171.1" fill="#EA4335" rx="3"/>
+<text x="218.3" y="113.9" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.71</text>
+<text x="218.3" y="310" text-anchor="middle" font-size="12" fill="#666">400</text>
+<rect x="267.8" y="135.6" width="58.9" height="154.4" fill="#EA4335" rx="3"/>
+<text x="297.2" y="130.6" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.54</text>
+<text x="297.2" y="310" text-anchor="middle" font-size="12" fill="#666">600</text>
+<rect x="346.7" y="142.7" width="58.9" height="147.3" fill="#EA4335" rx="3"/>
+<text x="376.1" y="137.7" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.47</text>
+<text x="376.1" y="310" text-anchor="middle" font-size="12" fill="#666">1000</text>
+<rect x="425.6" y="136.3" width="58.9" height="153.7" fill="#EA4335" rx="3"/>
+<text x="455.0" y="131.3" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.54</text>
+<text x="455.0" y="310" text-anchor="middle" font-size="12" fill="#666">1200</text>
+<rect x="504.4" y="112.8" width="58.9" height="177.2" fill="#EA4335" rx="3"/>
+<text x="533.9" y="107.8" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.77</text>
+<text x="533.9" y="310" text-anchor="middle" font-size="12" fill="#666">1400</text>
+<rect x="583.3" y="107.4" width="58.9" height="182.6" fill="#EA4335" rx="3"/>
+<text x="612.8" y="102.4" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">1.82</text>
+<text x="612.8" y="310" text-anchor="middle" font-size="12" fill="#666">1800</text>
+<rect x="662.2" y="82.3" width="58.9" height="207.7" fill="#EA4335" rx="3"/>
+<text x="691.7" y="77.3" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">2.08</text>
+<text x="691.7" y="310" text-anchor="middle" font-size="12" fill="#666">2000</text>
+<rect x="741.1" y="81.3" width="58.9" height="208.7" fill="#EA4335" rx="3"/>
+<text x="770.6" y="76.3" text-anchor="middle" font-size="11" font-weight="bold" fill="#333">2.09</text>
+<text x="770.6" y="310" text-anchor="middle" font-size="12" fill="#666">2400</text>
+<text x="455" y="335" text-anchor="middle" font-size="13" fill="#444">Total Queries</text>
+<text x="20" y="170" text-anchor="middle" font-size="13" fill="#444" transform="rotate(-90, 20, 170)">Ratio (STM/HTM)</text>
+<line x1="90" y1="50" x2="90" y2="290" stroke="#333" stroke-width="2"/>
+<line x1="90" y1="290" x2="820" y2="290" stroke="#333" stroke-width="2"/>
+</svg>
+
+<h2>Timing Data</h2>
+<table>
+<tr><th>Total Queries</th><th>Queries/Thread</th><th>HTM (ms)</th><th>STM (ms)</th><th>STM/HTM</th></tr>
+<tr><td>200</td><td>25</td><td>134.00</td><td>198.49</td><td>1.48</td></tr>
+<tr><td>400</td><td>50</td><td>137.39</td><td>234.89</td><td>1.71</td></tr>
+<tr><td>600</td><td>75</td><td>152.99</td><td>235.96</td><td>1.54</td></tr>
+<tr><td>1000</td><td>125</td><td>181.59</td><td>267.36</td><td>1.47</td></tr>
+<tr><td>1200</td><td>150</td><td>177.25</td><td>272.23</td><td>1.54</td></tr>
+<tr><td>1400</td><td>175</td><td>176.41</td><td>312.31</td><td>1.77</td></tr>
+<tr><td>1800</td><td>225</td><td>188.13</td><td>343.26</td><td>1.82</td></tr>
+<tr><td>2000</td><td>250</td><td>179.51</td><td>372.58</td><td>2.08</td></tr>
+<tr><td>2400</td><td>300</td><td>190.90</td><td>398.09</td><td>2.09</td></tr>
+</table>
+<h2>Conclusions</h2>
+<p>When Intel TSX-NI is <strong>enabled</strong>, the CPU uses Hardware Lock Elision (HLE) to speculatively execute critical sections protected by <code>ReentrantLock</code> without actually acquiring the lock. Hardware transactional memory manages conflicts at the CPU level with minimal overhead.</p>
+<p>Software Transactional Memory (Multiverse) provides the same transactional guarantees but with higher overhead due to software-based versioning, conflict detection, and potential rollback/retry. Each <code>StmUtils.atomic()</code> call adds bookkeeping overhead.</p>
+<p>The STM/HTM ratio shows how much slower STM is compared to HTM. A ratio &gt; 1.0 means STM is slower. The overhead tends to grow with the total number of queries as more STM bookkeeping accumulates.</p>
+<h2>TSX-NI Control (Windows Registry)</h2>
+<div class="warn">
+<p><strong>Enable TSX-NI:</strong><br><code>reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Kernel" /v DisableTsx /t REG_DWORD /d 0 /f</code></p>
+<p><strong>Disable TSX-NI:</strong><br><code>reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Kernel" /v DisableTsx /t REG_DWORD /d 1 /f</code></p>
+<p>Reboot required after each change.</p>
+</div>
+</div>
+</body>
+</html>
